@@ -1,18 +1,13 @@
-// Copyright GoFrame gf Author(https://goframe.org). All Rights Reserved.
-//
-// This Source Code Form is subject to the terms of the MIT License.
-// If a copy of the MIT was not distributed with this file,
-// You can obtain one at https://github.com/gogf/gf.
-
 package kcode
 
 import "fmt"
 
-// localCode is an implementer for interface Code for internal usage only.
 type localCode struct {
-	code    int         // Error code, usually an integer.
-	message string      // Brief message for this error code.
-	detail  interface{} // As type of interface, it is mainly designed as an extension field for error code.
+	code     int
+	message  string
+	httpCode HttpStatusCode
+	reason   string
+	metadata interface{}
 }
 
 // Code returns the integer number of current error code.
@@ -25,19 +20,25 @@ func (c localCode) Message() string {
 	return c.message
 }
 
-// Detail returns the detailed information of current error code,
-// which is mainly designed as an extension field for error code.
-func (c localCode) Detail() interface{} {
-	return c.detail
+func (c localCode) HttpCode() HttpStatusCode {
+	return c.httpCode
+}
+
+func (c localCode) Reason() string {
+	return c.reason
+}
+
+func (c localCode) Metadata() interface{} {
+	return c.metadata
 }
 
 // String returns current error code as a string.
 func (c localCode) String() string {
-	if c.detail != nil {
-		return fmt.Sprintf(`%d:%s %v`, c.code, c.message, c.detail)
+	if c.reason != "" {
+		return fmt.Sprintf("Code[%d]-HttpCode[%v]: CodeMsg[%s]-HttpMsg[%s] %s %+v", c.code, c.httpCode, c.message, StatusText(c.httpCode), c.reason, c.metadata)
 	}
 	if c.message != "" {
-		return fmt.Sprintf(`%d:%s`, c.code, c.message)
+		return fmt.Sprintf(`Code[%d]-HttpCode[%v]: CodeMsg[%s]-HttpMsg[%s]`, c.code, c.httpCode, c.message, StatusText(c.httpCode))
 	}
-	return fmt.Sprintf(`%d`, c.code)
+	return fmt.Sprintf(`Code[%d]-HttpCode[%v]`, c.code, c.httpCode)
 }
